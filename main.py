@@ -1,31 +1,63 @@
 import urllib.request
 import json
 from review_handler import ReviewHandler
+import sys
 
 cursor = '*'
-REVIEW_SIZE_LIMIT = 5000
-franchise = "temp franchise name"
-gameName = "temp game name"
+seenCursors = []
+success = True
+fileCounter = 0
+MAX_REVIEW_FILE_LENGTH = 5000
+NUM_PER_PAGE = 100
+franchise = ""
+gameName = ""
+appId = ""
 
-url = "https://store.steampowered.com/appreviews/1382330?json=1&num_per_page=100"
+if len(sys.argv) != 4:
+    sys.exit('the first argument should be franchise and the second should be game name')
+else:
+    franchise = sys.argv[1]
+    gameName = sys.argv[2]
+    appId = sys.argv[3]
 
-req = urllib.request.Request(url=url, method='GET')
-with urllib.request.urlopen(req) as response:
-    data = response.read()
+cursor = '*'
+seenCursors = []
+success = True
+fileCounter = 0
+MAX_REVIEW_FILE_LENGTH = 5000
+NUM_PER_PAGE = 100
 
-#print(data)
-jsonData = json.loads(data)
-print(jsonData.get('cursor'))
+handler = ReviewHandler(franchise, gameName, MAX_REVIEW_FILE_LENGTH)
 
-reviews = []
-#check if the query is successful
-if jsonData.get('success') == 1:
-    reviews = jsonData.get('reviews')
-    print(len(reviews))
 
-handler = ReviewHandler(franchise, gameName)
-handler.addReviews(reviews)
-handler.saveReviews('test.json')
+while success == True:
+    url = "https://store.steampowered.com/appreviews/" + str(appId) +"?json=1&num_per_page=" + str(NUM_PER_PAGE) + "&cursor=" + cursor
 
-#for i in range(len(jsonData)):
-#    print(jsonData[i])
+    req = urllib.request.Request(url=url, method='GET')
+    with urllib.request.urlopen(req) as response:
+        data = response.read()
+
+    #print(data)
+    jsonData = json.loads(data)
+    cursor = jsonData.get('cursor')
+    print(cursor)
+
+    reviews = []
+    #check if the query is successful
+    if jsonData.get('success') == 1 and cursor not in seenCursors:
+        seenCursors.append(cursor)
+        reviews = jsonData.get('reviews')
+        if handler.hasSpace(NUM_PER_PAGE):
+            handler.addReviews(reviews)
+        else:
+            filename = 'output' + str(fileCounter) + '.json'
+            handler.saveReviews(filename)
+            handler.setReviewsEmpty()
+            handler.addReviews(reviews)
+            fileCounter = fileCounter + 1
+    else:
+        success = False
+
+#Save remaining reviews
+filename = 'output' + str(fileCounter) + '.json'
+handler.saveReviews(filename)

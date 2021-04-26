@@ -3,18 +3,16 @@ from datetime import date
 import json
 
 class ReviewHandler:
-    def __init__(self, franchise, gameName):
+    def __init__(self, franchise, gameName, maxSize):
         self.reviews = []
         self.franchise = franchise
         self.gameName = gameName
+        self.maxSize = maxSize
 
     def addReviews(self, reviews):
         reviewList = []
         for i in range(len(reviews)):
-            if i == 3:
                 thisReview = reviews[i]
-                print(reviews[i])
-                print(reviews[i].get('recommendationid'))
 
                 review = {}
                 review['id'] = thisReview.get('recommendationid')
@@ -36,8 +34,13 @@ class ReviewHandler:
         file = open(filename, 'w')
         file.write(json.dumps(self.reviews))
         file.close()
+    
+    def hasSpace(self, space):
+        if self.maxSize > len(self.reviews) + space:
+            return True
+        else:
+            return False
 
+    def setReviewsEmpty(self):
+        self.reviews = []
         
-
-
-    #def
