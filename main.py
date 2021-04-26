@@ -1,6 +1,8 @@
 import urllib.request
 import json
+from review_handler import ReviewHandler
 
+REVIEW_SIZE_LIMIT = 5000
 franchise = "temp franchise name"
 gameName = "temp game name"
 url = "https://store.steampowered.com/appreviews/1382330?json=1"
@@ -11,17 +13,14 @@ with urllib.request.urlopen(req) as response:
 
 #print(data)
 jsonData = json.loads(data)
-print(jsonData)
-print(type(jsonData))
 
 reviews = []
 #check if the query is successful
 if jsonData.get('success') == 1:
     reviews = jsonData.get('reviews')
 
-for i in range(len(reviews)):
-    if i == 1:
-        print(reviews[i])
+handler = ReviewHandler(reviews)
+handler.somename()
 
 #for i in range(len(jsonData)):
 #    print(jsonData[i])
